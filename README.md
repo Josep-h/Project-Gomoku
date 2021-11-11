@@ -22,7 +22,7 @@ A project of computational game theory.
 
 - [x] MinMax 算法执行。
 - [x] MinMax 算法的可视化。
-- [x] MCTS 的训练（但尚不知道能否获得可以使用的AI，但目测Loss确实是在下降。
+- [x] MCTS 的训练（但尚不知道能否获得可以使用的 AI，但目测 Loss 确实是在下降。
 - [x] MCTS 和 MinMax 的对比函数。
 - [ ] 给出加入对比的 API。
 - [ ] 禁手（待定）。
@@ -30,5 +30,7 @@ A project of computational game theory.
 ## 文件
 
 ```
-play.py - 运行下棋的GUI界面。
+play.py - 运行下棋的 GUI 界面。
+compare.py - 不同 AI 互相对局。
+train_mcts.py - 训练 MCTS 方法。
 ```
