@@ -23,8 +23,9 @@ from MCTS.policy_value_net_pytorch import PolicyValueNet  # Pytorch
 class TrainPipeline:
     def __init__(self, init_model=None):
         # params of the board and the game
-        self.board_width = 6
-        self.board_height = 6
+        use_gpu = True
+        self.board_width = 8
+        self.board_height = 8
         self.n_in_row = 4
         self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
         self.game = Game(self.board)
@@ -41,7 +42,7 @@ class TrainPipeline:
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
         # self.check_freq = 50 # default
-        self.check_freq = 10
+        self.check_freq = 3
         self.game_batch_num = 1500
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
@@ -49,10 +50,12 @@ class TrainPipeline:
         self.pure_mcts_playout_num = 1000
         if init_model:
             # start training from an initial policy-value net
-            self.policy_value_net = PolicyValueNet(self.board_width, self.board_height, model_file=init_model)
+            self.policy_value_net = PolicyValueNet(
+                self.board_width, self.board_height, model_file=init_model, use_gpu=use_gpu
+            )
         else:
             # start training from a new policy-value net
-            self.policy_value_net = PolicyValueNet(self.board_width, self.board_height)
+            self.policy_value_net = PolicyValueNet(self.board_width, self.board_height, use_gpu=use_gpu)
         self.mcts_player = MCTSPlayer(
             self.policy_value_net.policy_value_fn, c_puct=self.c_puct, n_playout=self.n_playout, is_selfplay=1
         )

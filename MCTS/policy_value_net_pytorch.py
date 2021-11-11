@@ -12,6 +12,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
+import pickle as pk
 
 
 def set_learning_rate(optimizer, lr):
@@ -151,3 +152,5 @@ class PolicyValueNet:
         """save model params to file"""
         net_params = self.get_policy_param()  # get model params
         torch.save(net_params, model_file)
+        # with open(model_file, "wb") as f:
+        #     pk.dump(net_params, f)
