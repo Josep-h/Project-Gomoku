@@ -26,7 +26,7 @@ class TrainPipeline:
         use_gpu = True
         self.board_width = 8
         self.board_height = 8
-        self.n_in_row = 4
+        self.n_in_row = 5
         self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
         self.game = Game(self.board)
         # training params
@@ -156,7 +156,7 @@ class TrainPipeline:
                 if (i + 1) % self.check_freq == 0:
                     print("current self-play batch: {}".format(i + 1))
                     win_ratio = self.policy_evaluate()
-                    self.policy_value_net.save_model("data/models/current_policy.model")
+                    self.policy_value_net.save_model("data/models/current_policy_{}.model".format(i))
                     if win_ratio > self.best_win_ratio:
                         print("New best policy!!!!!!!!")
                         self.best_win_ratio = win_ratio

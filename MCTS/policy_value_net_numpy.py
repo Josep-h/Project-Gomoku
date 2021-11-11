@@ -9,6 +9,7 @@ trained AI model without installing any DL framwork
 from __future__ import print_function
 import numpy as np
 
+version = "New"
 
 # some utility functions
 def softmax(x):
@@ -26,8 +27,13 @@ def conv_forward(X, W, b, stride=1, padding=1):
     n_filters, d_filter, h_filter, w_filter = W.shape
     # theano conv2d flips the filters (rotate 180 degree) first
     # while doing the calculation
-    W = np.array(W.cpu())
-    b = np.array(b.cpu())
+    if version == "New":
+        # Newer grammar
+        W = np.array(W.cpu())
+        b = np.array(b.cpu())
+    else:
+        pass
+
     W = W[:, :, ::-1, ::-1]
     n_x, d_x, h_x, w_x = X.shape
     h_out = (h_x - h_filter + 2 * padding) / stride + 1
@@ -42,10 +48,14 @@ def conv_forward(X, W, b, stride=1, padding=1):
 
 
 def fc_forward(X, W, b):
-    W = np.array(W.cpu())
-    b = np.array(b.cpu())
-    # out = np.dot(X, W) + b
-    out = np.dot(W, X) + b
+    # Newer grammar
+    if version == "New":
+        W = np.array(W.cpu())
+        b = np.array(b.cpu())
+        out = np.dot(W, X) + b
+    else:
+        # Old grammar
+        out = np.dot(X, W) + b
     return out
 
 

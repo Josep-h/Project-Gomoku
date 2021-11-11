@@ -7,23 +7,25 @@ from MCTS.mcts_pure import MCTSPlayer as MCTS_Pure
 from MCTS.mcts_alphaZero import MCTSPlayer
 from MCTS.policy_value_net_numpy import PolicyValueNetNumpy
 
+version = "New"
+
 
 def run():
     n = 5
     width, height = 8, 8
-    model_file = "data/models/current_policy.model"
+    # model_file = "data/models/current_policy.model"
+    model_file = "data/models/best_policy_8_8_5.model"
     try:
         board = Board(width=width, height=height, n_in_row=n)
         game = Game(board)
         try:
             policy_param = pickle.load(open(model_file, "rb"))
         except:
-            # policy_param = pickle.load(open(model_file, "rb"), encoding="bytes")  # To support python3
-            policy_param = list(torch.load(model_file).values())
+            if version == "New":
+                policy_param = list(torch.load(model_file).values())
+            else:
+                policy_param = pickle.load(open(model_file, "rb"), encoding="bytes")  # To support python3
 
-            print(policy_param)
-            # with open(model_file, "rb") as f:
-            # policy_param = torch.load(f)
         best_policy = PolicyValueNetNumpy(width, height, policy_param)
         mcts_player = MCTSPlayer(
             best_policy.policy_value_fn, c_puct=5, n_playout=400
