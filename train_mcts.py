@@ -23,7 +23,7 @@ from MCTS.policy_value_net_pytorch import PolicyValueNet  # Pytorch
 class TrainPipeline:
     def __init__(self, init_model=None):
         # params of the board and the game
-        use_gpu = True
+        use_gpu = False
         self.board_width = 8
         self.board_height = 8
         self.n_in_row = 5
@@ -42,7 +42,7 @@ class TrainPipeline:
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
         # self.check_freq = 50 # default
-        self.check_freq = 3
+        self.check_freq = 50
         self.game_batch_num = 1500
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
