@@ -18,6 +18,15 @@ A project of computational game theory.
 
 参考代码在 `/AlphaZero_Gomoku` 中。
 
+## 进展
+
+[x] MinMax 算法执行。
+[x] MinMax 算法的可视化。
+[x] MCTS 的训练（但尚不知道能否获得可以使用的AI，但目测Loss确实是在下降。
+[x] MCTS 和 MinMax 的对比函数。
+[] 给出加入对比的 API。
+[] 禁手（待定）。
+
 ## 文件
 
 ```
