@@ -124,14 +124,14 @@ class MinMaxSearchTree(object):
         return moves
 
     def __search(self, board, turn, depth, is_root=False, alpha=SCORE_MIN, beta=SCORE_MAX):
-        if depth <= 0:
-            self.count_ += 1
+        self.count_ += 1
+        if not is_root:
             if self.z.h in self.zobrist_record:
-                score = self.zobrist_record[self.z.h]
                 self.discount_ += 1
-            else:
-                score = self.evaluate(board, turn)
-                self.zobrist_record[self.z.h] = score
+                return self.zobrist_record[self.z.h]
+        if depth <= 0:
+            score = self.evaluate(board, turn)
+            self.zobrist_record[self.z.h] = score
             return score
 
         moves = self.genmove(board, turn)
@@ -148,6 +148,7 @@ class MinMaxSearchTree(object):
         for _, x, y in moves:
             board[y][x] = turn
             self.z.step((x, y), turn)
+            self.z.h ^= depth + 1999
             # 负值最大只需要求最大值，对每一层都进行beta裁剪
             # alpha代表该层遍历到该节点时当前最好的结果
             # beta代表父节点当前的alpha值，如果alpha已经大于beta值，说明当前遍历的最好的结果已经比父节点最好的情况要好了，
@@ -155,6 +156,7 @@ class MinMaxSearchTree(object):
             # 负值最大只需要对alpha，beta变号即可，递归调用子节点beta为该根节点的alpha，
             new_node_score = -self.__search(board, op_turn, depth - 1, False, -beta, -alpha)
             board[y][x] = 0
+            self.z.h ^= depth + 1999
             self.z.step((x, y), turn)
 
             if new_node_score > node_score:
@@ -163,6 +165,7 @@ class MinMaxSearchTree(object):
             alpha = max(alpha, node_score)
             if alpha >= beta:
                 break
+        # self.zobrist_record[self.z.h] = node_score
         if is_root == True:
             self.bestmove = best_move
         return node_score
