@@ -2,10 +2,10 @@ import sys
 
 sys.path.append("..")
 
-from MinMax.num_define import *
+from MinMaxRefined.num_define import *
 import time
 from enum import IntEnum
-from zobrist import zobrist
+from MinMaxRefined.zobrist import zobrist
 
 
 class MinMaxSearchTree(object):
@@ -17,8 +17,8 @@ class MinMaxSearchTree(object):
         # 2*CHESS_TYPE_NUM的列表，本方和对方评价棋面的数目
         self.count = [[0 for x in range(CHESS_TYPE_NUM)] for i in range(2)]
 
-        self.zobrist_record = [{}, {}]
-        self.z = [zobrist(), zobrist()]
+        self.zobrist_record = {}
+        self.z = zobrist()
 
     # 重设评价函数所用的评价棋面次数和标志标量
     def reset(self):
@@ -39,27 +39,16 @@ class MinMaxSearchTree(object):
                 self.count[i][j] = 0
 
         board[y][x] = mine
-        h = self.z[mine - 1].step((y, x), mine)
-        if h in self.zobrist_record[mine - 1]:
-            mscore = self.zobrist_record[mine - 1][h]
-        else:
-            self.evaluatePoint(board, x, y, mine, opponent, self.count[mine - 1])
-            mine_count = self.count[mine - 1]
-            mscore = self.getPointScore(mine_count)
-            self.zobrist_record[mine - 1][h] = mscore
-        self.z[mine - 1].destep((y, x), mine)
+        self.evaluatePoint(board, x, y, mine, opponent, self.count[mine - 1])
+        mine_count = self.count[mine - 1]
+        mscore = self.getPointScore(mine_count)
 
         board[y][x] = opponent
-        h = self.z[opponent - 1].step((y, x), opponent)
-        if h in self.zobrist_record[opponent - 1][h]:
-            oscore = self.zobrist_record[opponent - 1][h]
-        else:
-            self.evaluatePoint(board, x, y, opponent, mine, self.count[opponent - 1])
-            opponent_count = self.count[opponent - 1]
-            oscore = self.getPointScore(opponent_count)
-            self.zobrist_record[opponent - 1][h] = oscore
-        self.z[opponent - 1].destep((y, x), opponent)
+        self.evaluatePoint(board, x, y, opponent, mine, self.count[opponent - 1])
+        opponent_count = self.count[opponent - 1]
+        oscore = self.getPointScore(opponent_count)
 
+        board[y][x] = 0
         # 计算得分
 
         return (mscore, oscore)
@@ -133,9 +122,14 @@ class MinMaxSearchTree(object):
         return moves
 
     def __search(self, board, turn, depth, is_root=False, alpha=SCORE_MIN, beta=SCORE_MAX):
-        score = self.evaluate(board, turn)
-        if depth <= 0 or abs(score) >= SCORE_FIVE:
+        if depth <= 0:
+            if self.z.h in self.zobrist_record:
+                score = self.zobrist_record[self.z.h]
+            else:
+                score = self.evaluate(board, turn)
+                self.zobrist_record[self.z.h] = score
             return score
+
         moves = self.genmove(board, turn)
 
         if turn == MAP_ENTRY_TYPE.MAP_PLAYER_ONE:
@@ -149,6 +143,7 @@ class MinMaxSearchTree(object):
             return 0
         for _, x, y in moves:
             board[y][x] = turn
+            self.z.step((x, y), turn)
             # 负值最大只需要求最大值，对每一层都进行beta裁剪
             # alpha代表该层遍历到该节点时当前最好的结果
             # beta代表父节点当前的alpha值，如果alpha已经大于beta值，说明当前遍历的最好的结果已经比父节点最好的情况要好了，
@@ -156,6 +151,8 @@ class MinMaxSearchTree(object):
             # 负值最大只需要对alpha，beta变号即可，递归调用子节点beta为该根节点的alpha，
             new_node_score = -self.__search(board, op_turn, depth - 1, False, -beta, -alpha)
             board[y][x] = 0
+            self.z.step((x, y), turn)
+
             if new_node_score > node_score:
                 node_score = new_node_score
                 best_move = (x, y)
@@ -445,7 +442,7 @@ class MinMaxSearchTree(object):
         return move
 
 
-class MinMaxSearchPlayer(object):
+class MinMaxRefinedSearchPlayer(object):
     def __init__(self, width, height):
         self.search_tree = MinMaxSearchTree(width, height)
 
