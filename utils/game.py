@@ -268,6 +268,7 @@ class Game(object):
                 # UI.render_step(move, current_player)
                 end, winner = self.board.game_end()
                 if end:
+                    print(AI.search_tree.discount_ / float(AI.search_tree.count_))
                     if winner != -1:
                         print("Winner is player", winner)
                         UI.add_score(winner)

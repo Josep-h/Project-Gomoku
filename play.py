@@ -10,6 +10,7 @@ from __future__ import print_function
 import pickle
 from utils.game import Board, Game
 from MinMax.min_max_search import MinMaxSearchPlayer
+from MinMaxRefined.min_max_search import MinMaxRefinedSearchPlayer
 from MCTS.policy_value_net_numpy import PolicyValueNetNumpy
 from MCTS.mcts_alphaZero import MCTSPlayer
 
@@ -25,7 +26,7 @@ def run(model):
     # 6*6棋盘的四子连珠：best_policy_6_6_4.model
     # 极大极小值搜索在任意大小的棋盘五子连珠
     n = 5
-    width, height = 8, 8
+    width, height = 15, 15
     try:
         board = Board(width=width, height=height, n_in_row=n)
         game = Game(board)
@@ -38,16 +39,20 @@ def run(model):
                 best_policy.policy_value_fn, c_puct=5, n_playout=400
             )  # set larger n_playout for better performance
             game.start_play_with_UI(mcts_player, start_player=1)
-        else:
+        elif model == "MinMax":
             # 极大极小值搜索
             minmax_player = MinMaxSearchPlayer(width, height)
             game.start_play_with_UI(minmax_player, start_player=1)
+        else:
+            minmax_player = MinMaxRefinedSearchPlayer(width, height)
+            game.start_play_with_UI(minmax_player, start_player=1)
+
     except KeyboardInterrupt:
         print("\n\rquit")
 
 
 # model = "MCTS"
-model = "MinMax"
+model = "MinMaxRefined"
 
 
 if __name__ == "__main__":
