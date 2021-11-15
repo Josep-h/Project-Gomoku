@@ -19,6 +19,8 @@ class MinMaxSearchTree(object):
 
         self.zobrist_record = {}
         self.z = zobrist()
+        self.discount_ = 0
+        self.count_ = 0
 
     # 重设评价函数所用的评价棋面次数和标志标量
     def reset(self):
@@ -123,8 +125,10 @@ class MinMaxSearchTree(object):
 
     def __search(self, board, turn, depth, is_root=False, alpha=SCORE_MIN, beta=SCORE_MAX):
         if depth <= 0:
+            self.count_ += 1
             if self.z.h in self.zobrist_record:
                 score = self.zobrist_record[self.z.h]
+                self.discount_ += 1
             else:
                 score = self.evaluate(board, turn)
                 self.zobrist_record[self.z.h] = score
@@ -438,6 +442,7 @@ class MinMaxSearchTree(object):
                 y = pos % self.width
                 trival_board[x][y] = player
             move_pos = self.findBestChess(trival_board, turn)
+            self.z.step(move_pos, turn)
         move = (self.width - move_pos[1] - 1) * self.width + move_pos[0]
         return move
 

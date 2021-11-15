@@ -26,7 +26,7 @@ def run(model):
     # 6*6棋盘的四子连珠：best_policy_6_6_4.model
     # 极大极小值搜索在任意大小的棋盘五子连珠
     n = 5
-    width, height = 8, 8
+    width, height = 15, 15
     try:
         board = Board(width=width, height=height, n_in_row=n)
         game = Game(board)
