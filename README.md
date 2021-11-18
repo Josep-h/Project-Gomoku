@@ -12,9 +12,10 @@ A project of computational game theory.
 
 计划算法分为个：
 
-- MinMax 博弈树方法（可以运行）
-- DeepCFR 方法
+- MinMax 博弈树方法（传统Alpha-Beta剪枝方法、加入Zobrist技术）
 - 蒙特卡洛搜索树方法
+- AlphaGo Zero模型
+- Muzero模型
 
 参考代码在 `/AlphaZero_Gomoku` 中。
 
