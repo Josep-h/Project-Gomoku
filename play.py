@@ -52,8 +52,8 @@ def run(model):
 
 
 # model = "MCTS"
-model = "MinMaxRefined"
-
+# model = "MinMaxRefined"
+model = "MinMax"
 
 if __name__ == "__main__":
     run(model)
