@@ -69,6 +69,8 @@ class PolicyValueNet:
         # the policy value net module
         if self.use_gpu:
             self.policy_value_net = Net(board_width, board_height).cuda()
+            a = torch.cuda.current_device()
+            print(a, torch.cuda.get_device_name(a))
         else:
             self.policy_value_net = Net(board_width, board_height)
         self.optimizer = optim.Adam(self.policy_value_net.parameters(), weight_decay=self.l2_const)
