@@ -15,19 +15,19 @@ from MCTS.mcts_alphaZero import MCTSPlayer
 
 # from policy_value_net import PolicyValueNet  # Theano and Lasagne
 from MCTS.policy_value_net_pytorch import PolicyValueNet  # Pytorch
+import torch
 
 # from policy_value_net_tensorflow import PolicyValueNet # Tensorflow
 # from policy_value_net_keras import PolicyValueNet # Keras
+from config import config
+
+c = config()
 
 
 class TrainPipeline:
     def __init__(self, init_model=None):
         # params of the board and the game
-        use_gpu = False
-        self.board_width = 8
-        self.board_height = 8
-        self.n_in_row = 5
-        self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
+        self.board = Board(width=c.width, height=c.height, n_in_row=c.n_in_row)
         self.game = Game(self.board)
         # training params
         self.learn_rate = 2e-3
@@ -38,8 +38,8 @@ class TrainPipeline:
         self.buffer_size = 10000
         self.batch_size = 512  # mini-batch size for training
         self.data_buffer = deque(maxlen=self.buffer_size)
-        self.play_batch_size = 1
-        self.epochs = 5  # num of train_steps for each update
+
+        self.epochs = 10  # num of train_steps for each update
         self.kl_targ = 0.02
         self.check_freq = 50
         self.game_batch_num = 1500
@@ -47,14 +47,12 @@ class TrainPipeline:
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
         self.pure_mcts_playout_num = 1000
-        if init_model:
+        if c.init_model:
             # start training from an initial policy-value net
-            self.policy_value_net = PolicyValueNet(
-                self.board_width, self.board_height, model_file=init_model, use_gpu=use_gpu
-            )
+            self.policy_value_net = PolicyValueNet(c.width, c.height, model_file=c.init_model, use_gpu=c.use_gpu)
         else:
             # start training from a new policy-value net
-            self.policy_value_net = PolicyValueNet(self.board_width, self.board_height, use_gpu=use_gpu)
+            self.policy_value_net = PolicyValueNet(c.width, c.height, use_gpu=c.use_gpu)
         self.mcts_player = MCTSPlayer(
             self.policy_value_net.policy_value_fn, c_puct=self.c_puct, n_playout=self.n_playout, is_selfplay=1
         )
@@ -68,7 +66,7 @@ class TrainPipeline:
             for i in [1, 2, 3, 4]:
                 # rotate counterclockwise
                 equi_state = np.array([np.rot90(s, i) for s in state])
-                equi_mcts_prob = np.rot90(np.flipud(mcts_porb.reshape(self.board_height, self.board_width)), i)
+                equi_mcts_prob = np.rot90(np.flipud(mcts_porb.reshape(c.height, c.width)), i)
                 extend_data.append((equi_state, np.flipud(equi_mcts_prob).flatten(), winner))
                 # flip horizontally
                 equi_state = np.array([np.fliplr(s) for s in equi_state])
@@ -78,13 +76,14 @@ class TrainPipeline:
 
     def collect_selfplay_data(self, n_games=1):
         """collect self-play data for training"""
-        for i in range(n_games):
-            winner, play_data = self.game.start_self_play(self.mcts_player, temp=self.temp)
-            play_data = list(play_data)[:]
-            self.episode_len = len(play_data)
-            # augment the data
-            play_data = self.get_equi_data(play_data)
-            self.data_buffer.extend(play_data)
+        with torch.no_grad():
+            for i in range(n_games):
+                winner, play_data = self.game.start_self_play(self.mcts_player, temp=self.temp)
+                play_data = list(play_data)[:]
+                self.episode_len = len(play_data)
+                # augment the data
+                play_data = self.get_equi_data(play_data)
+                self.data_buffer.extend(play_data)
 
     def policy_update(self):
         """update the policy-value net"""
@@ -93,11 +92,14 @@ class TrainPipeline:
         mcts_probs_batch = [data[1] for data in mini_batch]
         winner_batch = [data[2] for data in mini_batch]
         old_probs, old_v = self.policy_value_net.policy_value(state_batch)
+        old_probs = old_probs.cpu().numpy()
         for i in range(self.epochs):
             loss, entropy = self.policy_value_net.train_step(
                 state_batch, mcts_probs_batch, winner_batch, self.learn_rate * self.lr_multiplier
             )
-            new_probs, new_v = self.policy_value_net.policy_value(state_batch)
+            with torch.no_grad():
+                new_probs, new_v = self.policy_value_net.policy_value(state_batch)
+                new_probs = new_probs.cpu().numpy()
             kl = np.mean(np.sum(old_probs * (np.log(old_probs + 1e-10) - np.log(new_probs + 1e-10)), axis=1))
             if kl > self.kl_targ * 4:  # early stopping if D_KL diverges badly
                 break
@@ -107,21 +109,21 @@ class TrainPipeline:
         elif kl < self.kl_targ / 2 and self.lr_multiplier < 10:
             self.lr_multiplier *= 1.5
 
-        explained_var_old = 1 - np.var(np.array(winner_batch) - old_v.flatten()) / np.var(np.array(winner_batch))
-        explained_var_new = 1 - np.var(np.array(winner_batch) - new_v.flatten()) / np.var(np.array(winner_batch))
+        # explained_var_old = 1 - np.var(np.array(winner_batch) - old_v.flatten()) / np.var(np.array(winner_batch))
+        # explained_var_new = 1 - np.var(np.array(winner_batch) - new_v.flatten()) / np.var(np.array(winner_batch))
         print(
             (
                 "kl:{:.5f},"
                 "lr_multiplier:{:.3f},"
                 "loss:{},"
                 "entropy:{},"
-                "explained_var_old:{:.3f},"
-                "explained_var_new:{:.3f}"
-            ).format(kl, self.lr_multiplier, loss, entropy, explained_var_old, explained_var_new)
+                # "explained_var_old:{:.3f},"
+                # "explained_var_new:{:.3f}"
+            ).format(kl, self.lr_multiplier, loss, entropy)
         )
         return loss, entropy
 
-    def policy_evaluate(self, n_games=10):
+    def policy_evaluate(self):
         """
         Evaluate the trained policy by playing against the pure MCTS player
         Note: this is only for monitoring the progress of training
@@ -131,10 +133,10 @@ class TrainPipeline:
         )
         pure_mcts_player = MCTS_Pure(c_puct=5, n_playout=self.pure_mcts_playout_num)
         win_cnt = defaultdict(int)
-        for i in range(n_games):
+        for i in range(c.n_games):
             winner = self.game.start_play(current_mcts_player, pure_mcts_player, start_player=i % 2, is_shown=0)
             win_cnt[winner] += 1
-        win_ratio = 1.0 * (win_cnt[1] + 0.5 * win_cnt[-1]) / n_games
+        win_ratio = 1.0 * (win_cnt[1] + 0.5 * win_cnt[-1]) / c.n_games
         print(
             "num_playouts:{}, win: {}, lose: {}, tie:{}".format(
                 self.pure_mcts_playout_num, win_cnt[1], win_cnt[2], win_cnt[-1]
@@ -146,7 +148,7 @@ class TrainPipeline:
         """run the training pipeline"""
         try:
             for i in range(self.game_batch_num):
-                self.collect_selfplay_data(self.play_batch_size)
+                self.collect_selfplay_data(c.play_batch_size)
                 print("batch i:{}, episode_len:{}".format(i + 1, self.episode_len))
                 if len(self.data_buffer) > self.batch_size:
                     loss, entropy = self.policy_update()
@@ -169,5 +171,5 @@ class TrainPipeline:
 
 
 if __name__ == "__main__":
-    training_pipeline = TrainPipeline(init_model="data/models/best_policy.model")
+    training_pipeline = TrainPipeline()
     training_pipeline.run()

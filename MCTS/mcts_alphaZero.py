@@ -8,6 +8,7 @@ network to guide the tree search and evaluate the leaf nodes
 
 import numpy as np
 import copy
+import time
 
 
 def softmax(x):
@@ -180,6 +181,7 @@ class MCTSPlayer(object):
         # the pi vector returned by MCTS as in the alphaGo Zero paper
         move_probs = np.zeros(board.width * board.height)
         if len(sensible_moves) > 0:
+            time1 = time.time()
             acts, probs = self.mcts.get_move_probs(board, temp)
             move_probs[list(acts)] = probs
             if self._is_selfplay:
@@ -197,11 +199,8 @@ class MCTSPlayer(object):
             #                location = board.move_to_location(move)
             #                print("AI move: %d,%d\n" % (location[0], location[1]))
 
-            # if return_prob:
-            #     return move, move_probs
-            # else:
-            #     return move
-            return move, move_probs
+            time2 = time.time()
+            return move, move_probs, time2 - time1
         else:
             print("WARNING: the board is full")
 
