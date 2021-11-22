@@ -8,6 +8,7 @@ A pure implementation of the Monte Carlo Tree Search (MCTS)
 import numpy as np
 import copy
 from operator import itemgetter
+import time
 
 
 def rollout_policy_fn(board):
@@ -193,9 +194,11 @@ class MCTSPlayer(object):
     def get_action(self, board):
         sensible_moves = board.availables
         if len(sensible_moves) > 0:
+            time1 = time.time()
             move = self.mcts.get_move(board)
             self.mcts.update_with_move(-1)
-            return move, 0
+            time2 = time.time()
+            return move, 0, time2 - time1
         else:
             print("WARNING: the board is full")
 

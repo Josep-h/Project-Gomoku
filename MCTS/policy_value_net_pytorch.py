@@ -65,10 +65,11 @@ class PolicyValueNet:
         self.use_gpu = use_gpu
         self.board_width = board_width
         self.board_height = board_height
+        torch.cuda.set_device(0)
         self.l2_const = 1e-4  # coef of l2 penalty
         # the policy value net module
         if self.use_gpu:
-            self.policy_value_net = Net(board_width, board_height).cuda()
+            self.policy_value_net = Net(board_width, board_height).cuda(0)
             a = torch.cuda.current_device()
             print(a, torch.cuda.get_device_name(a))
         else:
@@ -85,10 +86,11 @@ class PolicyValueNet:
         output: a batch of action probabilities and state values
         """
         if self.use_gpu:
-            state_batch = Variable(torch.FloatTensor(state_batch).cuda())
+            state_batch = Variable(torch.FloatTensor(np.array(state_batch)).cuda())
             log_act_probs, value = self.policy_value_net(state_batch)
-            act_probs = np.exp(log_act_probs.data.cpu().numpy())
-            return act_probs, value.data.cpu().numpy()
+            # act_probs = np.exp(log_act_probs.data.cpu().numpy())
+            act_probs = torch.exp(log_act_probs.data)
+            return act_probs, value.data
         else:
             state_batch = Variable(torch.FloatTensor(state_batch))
             log_act_probs, value = self.policy_value_net(state_batch)
@@ -117,9 +119,10 @@ class PolicyValueNet:
         """perform a training step"""
         # wrap in Variable
         if self.use_gpu:
-            state_batch = Variable(torch.FloatTensor(state_batch).cuda())
-            mcts_probs = Variable(torch.FloatTensor(mcts_probs).cuda())
-            winner_batch = Variable(torch.FloatTensor(winner_batch).cuda())
+            state_batch = Variable(torch.FloatTensor(np.array(state_batch)).cuda(0))
+            mcts_probs = Variable(torch.FloatTensor(np.array(mcts_probs)).cuda(0))
+            winner_batch = Variable(torch.FloatTensor(np.array(winner_batch)).cuda(0))
+            # pass
         else:
             state_batch = Variable(torch.FloatTensor(state_batch))
             mcts_probs = Variable(torch.FloatTensor(mcts_probs))

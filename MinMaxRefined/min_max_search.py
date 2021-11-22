@@ -6,6 +6,9 @@ from MinMaxRefined.num_define import *
 import time
 from enum import IntEnum
 from MinMaxRefined.zobrist import zobrist
+from config import config
+
+c = config()
 
 
 class MinMaxSearchTree(object):
@@ -170,19 +173,19 @@ class MinMaxSearchTree(object):
             self.bestmove = best_move
         return node_score
 
-    def search(self, board, turn, depth=4):
-        self.maxdepth = depth
+    def search(self, board, turn):
+        self.maxdepth = c.depth
         self.bestmove = None
-        score = self.__search(board, turn, depth, is_root=True)
+        score = self.__search(board, turn, c.depth, is_root=True)
         x, y = self.bestmove
         return score, x, y
 
     def findBestChess(self, board, turn):
         time1 = time.time()
-        score, x, y = self.search(board, turn, AI_SEARCH_DEPTH)
+        score, x, y = self.search(board, turn)
         time2 = time.time()
         print("time[%.2f] (%d, %d), score[%d]" % ((time2 - time1), x, y, score))
-        return (x, y)
+        return (x, y), time2 - time1
 
     def getPointScore(self, count):
         score = 0
@@ -435,6 +438,7 @@ class MinMaxSearchTree(object):
         current_state = board.states
         if len(current_state) == 0:
             move_pos = (int(self.width / 2), int(self.height / 2))
+            time_ = 0
         else:
             if len(board.availables) < 3:
                 print()
@@ -444,10 +448,10 @@ class MinMaxSearchTree(object):
                 x = self.width - x - 1
                 y = pos % self.width
                 trival_board[x][y] = player
-            move_pos = self.findBestChess(trival_board, turn)
+            move_pos, time_ = self.findBestChess(trival_board, turn)
             self.z.step(move_pos, turn)
         move = (self.width - move_pos[1] - 1) * self.width + move_pos[0]
-        return move
+        return move, time_
 
 
 class MinMaxRefinedSearchPlayer(object):
@@ -463,8 +467,8 @@ class MinMaxRefinedSearchPlayer(object):
     def get_action(self, board):
         sensible_moves = board.availables
         if len(sensible_moves) > 0:
-            move = self.search_tree.get_move(board, self.player)
-            return move, None
+            move, time_ = self.search_tree.get_move(board, self.player)
+            return move, None, time_
         else:
             print("WARNING: the board is full")
 

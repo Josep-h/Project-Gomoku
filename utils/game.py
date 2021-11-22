@@ -12,6 +12,9 @@ sys.path.append("..")
 
 import numpy as np
 from utils.GUI_v1_4 import GUI
+from config import config
+
+c = config()
 
 
 class Board(object):
@@ -174,21 +177,29 @@ class Game(object):
         players = {p1: player1, p2: player2}
         if is_shown:
             self.graphic(self.board, player1.player, player2.player)
+        time_board = [0, 0]
+        turn = 0
         while True:
+            print(turn)
+            turn += 1
             current_player = self.board.get_current_player()
             player_in_turn = players[current_player]
-            move, _ = player_in_turn.get_action(self.board)
+            move, _, time_ = player_in_turn.get_action(self.board)
+            time_board[current_player - 1] += time_
+            if isinstance(move, tuple):
+                move = (c.width - move[1] - 1) * c.width + move[0]
             self.board.do_move(move)
             if is_shown:
                 self.graphic(self.board, player1.player, player2.player)
             end, winner = self.board.game_end()
             if end:
                 if is_shown:
+                    print(time_board)
                     if winner != -1:
                         print("Game end. Winner is", players[winner])
                     else:
                         print("Game end. Tie")
-                return winner
+                return winner, time_board
 
     def start_play_with_UI(self, AI, start_player=0):
         """
@@ -210,7 +221,7 @@ class Game(object):
                 UI.show_messages("AI's turn")
             if current_player == 1 and not end:
                 # move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=1)
-                move, move_probs = AI.get_action(self.board)
+                move, move_probs, time_ = AI.get_action(self.board)
                 num = num + 1
                 print("move", move)
             else:
@@ -297,11 +308,11 @@ class Game(object):
                 num += 1
             if current_player == 1 and not end:
                 # move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=1)
-                move, move_probs = AI2.get_action(self.board)
+                move, move_probs, time_ = AI2.get_action(self.board)
                 print("move", move)
             else:
                 if current_player == 0 and not end:
-                    move, move_probs = AI1.get_action(self.board)
+                    move, move_probs, time_ = AI1.get_action(self.board)
                     print("move2", move)
                 if end:
 
@@ -335,7 +346,7 @@ class Game(object):
         p1, p2 = self.board.players
         states, mcts_probs, current_players = [], [], []
         while True:
-            move, move_probs = player.get_action(self.board, temp=temp, return_prob=1)
+            move, move_probs, time_ = player.get_action(self.board, temp=temp, return_prob=1)
             # store the data
             states.append(self.board.current_state())
             mcts_probs.append(move_probs)
