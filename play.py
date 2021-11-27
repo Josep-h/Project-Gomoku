@@ -8,6 +8,8 @@ Input your move in the format: 2,3
 
 from __future__ import print_function
 import pickle
+
+import torch
 from utils.game import Board, Game
 from MinMax.min_max_search import MinMaxSearchPlayer
 from MinMaxRefined.min_max_search import MinMaxRefinedSearchPlayer
@@ -34,8 +36,11 @@ def run(model):
         game = Game(board)
         if model == "MCTS":
             # model_file = "data/models/best_policy_8_8_5.model"
-            model_file = "data/models/best_policy.model"
-            policy_param = pickle.load(open(model_file, "rb"), encoding="bytes")  # To support python3
+            model_file = "data/models/current_policy_549.model"
+            # model_file = "data/models/best_policy.model"
+            params = torch.load(model_file)
+            # policy_param = pickle.load(open(model_file, "rb"), encoding="bytes")["model_state_dict"]
+            policy_param = params["model_state_dict"]
             best_policy = PolicyValueNetNumpy(c.width, c.height, policy_param)
             # alpha zero 蒙特卡洛搜索
             mcts_player = MCTSPlayer(
@@ -54,8 +59,8 @@ def run(model):
         print("\n\rquit")
 
 
-# model = "MCTS"
-model = "MinMaxRefined"
+model = "MCTS"
+# model = "MinMaxRefined"
 # model = "MinMax"
 
 if __name__ == "__main__":

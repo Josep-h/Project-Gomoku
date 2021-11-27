@@ -180,7 +180,7 @@ class Game(object):
         time_board = [0, 0]
         turn = 0
         while True:
-            print(turn)
+            # print(turn)
             turn += 1
             current_player = self.board.get_current_player()
             player_in_turn = players[current_player]

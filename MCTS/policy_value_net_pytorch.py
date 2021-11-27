@@ -77,8 +77,9 @@ class PolicyValueNet:
         self.optimizer = optim.Adam(self.policy_value_net.parameters(), weight_decay=self.l2_const)
 
         if model_file:
-            net_params = torch.load(model_file)
-            self.policy_value_net.load_state_dict(net_params)
+            checkpoint = torch.load(model_file)
+            self.policy_value_net.load_state_dict(checkpoint["model_state_dict"])
+            self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
 
     def policy_value(self, state_batch):
         """
@@ -94,8 +95,8 @@ class PolicyValueNet:
         else:
             state_batch = Variable(torch.FloatTensor(state_batch))
             log_act_probs, value = self.policy_value_net(state_batch)
-            act_probs = np.exp(log_act_probs.data.numpy())
-            return act_probs, value.data.numpy()
+            act_probs = np.exp(log_act_probs.data)
+            return act_probs, value.data
 
     def policy_value_fn(self, board):
         """
@@ -153,9 +154,18 @@ class PolicyValueNet:
         net_params = self.policy_value_net.state_dict()
         return net_params
 
-    def save_model(self, model_file):
+    def save_model(self, model_file, epoch, lr, lr_m, data_buffer):
         """save model params to file"""
-        net_params = self.get_policy_param()  # get model params
-        torch.save(net_params, model_file)
+        torch.save(
+            {
+                "epoch": epoch,
+                "model_state_dict": self.policy_value_net.state_dict(),
+                "optimizer_state_dict": self.optimizer.state_dict(),
+                "lr": lr,
+                "lr_m": lr_m,
+                "data_buffer": data_buffer,
+            },
+            model_file,
+        )
         # with open(model_file, "wb") as f:
         #     pk.dump(net_params, f)
