@@ -9,7 +9,7 @@ class config:
         # MCTS
         self.init_model = False
         # self.init_model = "data/models/best_policy.model"
-        self.init_model = "data/models/current_policy_199.model"
+        self.init_model = "data/models/current_policy_549.model"
         self.n_games = 10
         self.use_gpu = False
         self.play_batch_size = 1

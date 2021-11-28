@@ -115,14 +115,18 @@ if __name__ == "__main__":
 
     mean_time = 0
     # c.depth = d
-    methods = ["MinMaxRefined-4", "MinMaxRefined-5", "MCTS2000", "MCTS4000"]
-    for i in range(len(methods)):
-        for j in range(i, len(methods)):
+    methods = [
+        "MCTS2000",
+        "MCTS4000",
+        "MinMaxRefined-4",
+        "MinMaxRefined-5",
+    ]
+    # methods = ["MCTS2000", "MCTS4000"]
+    with torch.no_grad():
+        for i in range(len(methods)):
             tp = c.total_games
-            ma = methods[i]
-            mb = methods[j]
-            if "MinMax" in ma and "MinMax" in mb:
-                c.total_games = 1
+            ma = "AlphaZero"
+            mb = methods[i]
             print(ma, mb)
             t, count, discount = run(ma, mb)
             c.total_games = tp

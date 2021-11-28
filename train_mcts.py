@@ -54,9 +54,9 @@ class TrainPipeline:
             self.policy_value_net = PolicyValueNet(c.width, c.height, model_file=c.init_model, use_gpu=c.use_gpu)
             checkpoint = torch.load(c.init_model)
             self.lr_multiplier = checkpoint["lr_m"]
-            # self.learn_rate = checkpoint["lr"]
+            self.learn_rate = checkpoint["lr"]
             # self.learn_rate = 0.01
-            self.data_buffer = checkpoint["data_buffer"]
+            # self.data_buffer = checkpoint["data_buffer"]
             print("data_load_done!")
         else:
             # start training from a new policy-value net
