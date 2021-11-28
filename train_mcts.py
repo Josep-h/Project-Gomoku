@@ -54,7 +54,8 @@ class TrainPipeline:
             self.policy_value_net = PolicyValueNet(c.width, c.height, model_file=c.init_model, use_gpu=c.use_gpu)
             checkpoint = torch.load(c.init_model)
             self.lr_multiplier = checkpoint["lr_m"]
-            self.learn_rate = checkpoint["lr"]
+            # self.learn_rate = checkpoint["lr"]
+            # self.learn_rate = 0.01
             self.data_buffer = checkpoint["data_buffer"]
             print("data_load_done!")
         else:
@@ -148,7 +149,7 @@ class TrainPipeline:
         pure_mcts_player = MinMaxRefinedSearchPlayer(c.width, c.height)
         win_cnt = defaultdict(int)
         for i in range(c.n_games):
-            winner, _ = self.game.start_play(current_mcts_player, pure_mcts_player, start_player=i % 2, is_shown=0)
+            winner, _, _ = self.game.start_play(current_mcts_player, pure_mcts_player, start_player=i % 2, is_shown=0)
             win_cnt[winner] += 1
         win_ratio = 1.0 * (win_cnt[1] + 0.5 * win_cnt[-1]) / c.n_games
         print(

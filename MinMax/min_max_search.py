@@ -12,13 +12,14 @@ c = config()
 
 
 class MinMaxSearchTree(object):
-    def __init__(self, width, height):
+    def __init__(self, width, height, depth=c.depth):
         self.width = width
         self.height = height
         # [horizon, vertical, left diagonal, right diagonal]
         self.record = [[[0, 0, 0, 0] for x in range(width)] for y in range(height)]
         # 2*CHESS_TYPE_NUM的列表，本方和对方评价棋面的数目
         self.count = [[0 for x in range(CHESS_TYPE_NUM)] for i in range(2)]
+        self.depth = depth
 
     # 重设评价函数所用的评价棋面次数和标志标量
     def reset(self):
@@ -122,6 +123,7 @@ class MinMaxSearchTree(object):
     def __search(self, board, turn, depth, is_root=False, alpha=SCORE_MIN, beta=SCORE_MAX):
         score = self.evaluate(board, turn)
         if depth <= 0 or abs(score) >= SCORE_FIVE:
+            # if depth <= 0:
             return score
         moves = self.genmove(board, turn)
 
@@ -154,9 +156,9 @@ class MinMaxSearchTree(object):
         return node_score
 
     def search(self, board, turn):
-        self.maxdepth = c.depth
+        self.maxdepth = self.depth
         self.bestmove = None
-        score = self.__search(board, turn, c.depth, is_root=True)
+        score = self.__search(board, turn, self.depth, is_root=True)
         x, y = self.bestmove
         return score, x, y
 
@@ -164,7 +166,7 @@ class MinMaxSearchTree(object):
         time1 = time.time()
         score, x, y = self.search(board, turn)
         time2 = time.time()
-        print("time[%.2f] (%d, %d), score[%d]" % ((time2 - time1), x, y, score))
+        # print("time[%.2f] (%d, %d), score[%d]" % ((time2 - time1), x, y, score))
         return (x, y), time2 - time1
 
     def getPointScore(self, count):
@@ -434,8 +436,8 @@ class MinMaxSearchTree(object):
 
 
 class MinMaxSearchPlayer(object):
-    def __init__(self, width, height):
-        self.search_tree = MinMaxSearchTree(width, height)
+    def __init__(self, width, height, depth=c.depth):
+        self.search_tree = MinMaxSearchTree(width, height, depth)
 
     def set_player_ind(self, p):
         self.player = p

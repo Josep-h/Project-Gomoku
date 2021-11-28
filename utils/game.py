@@ -199,7 +199,7 @@ class Game(object):
                         print("Game end. Winner is", players[winner])
                     else:
                         print("Game end. Tie")
-                return winner, time_board
+                return winner, time_board, turn
 
     def start_play_with_UI(self, AI, start_player=0):
         """
@@ -279,7 +279,7 @@ class Game(object):
                 # UI.render_step(move, current_player)
                 end, winner = self.board.game_end()
                 if end:
-                    print(AI.search_tree.discount_ / float(AI.search_tree.count_))
+                    # print(AI.search_tree.discount_ / float(AI.search_tree.count_))
                     if winner != -1:
                         print("Winner is player", winner)
                         UI.add_score(winner)
