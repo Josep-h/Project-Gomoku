@@ -29,6 +29,8 @@
 python play.py - 打开人机对弈的GUI界面（具体使用的对弈算法需要修改play.py）
 python train_mcts.py - 训练AlphaZero（相应的config内容在config.py中进行修改）
 python compare.py - 比较各种模型的性能
+python muzero.py - 训练MuZero模型（model的部分参数可在./games/gomoku.py中修改）
+
 ```
 
 ### 文件
