@@ -4,7 +4,7 @@ class config:
         self.height = 11
         self.n_in_row = 5
         self.depth = 4
-        self.total_games = 5
+        self.total_games = 1
 
         # MCTS
         self.init_model = False

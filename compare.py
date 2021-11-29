@@ -37,6 +37,16 @@ def load_AlphaZero_player(play_out_num=800):
     return mcts_player
 
 
+def load_AlphaZero_player88(play_out_num=800):
+    model_file = "data/models/best_policy_8_8_5.model"
+    policy_param = pickle.load(open(model_file, "rb"), encoding="bytes")
+    best_policy = PolicyValueNetNumpy(8, 8, policy_param)
+    mcts_player = MCTSPlayer(
+        best_policy.policy_value_fn, c_puct=5, n_playout=play_out_num
+    )  # set larger n_playout for better performance
+    return mcts_player
+
+
 def get_player(name):
     if name == "MinMax-4":
         return load_min_max_player(4)
@@ -52,6 +62,9 @@ def get_player(name):
         return load_MCTS_player(4000)
     if name == "AlphaZero":
         return load_AlphaZero_player()
+    if name == "AlphaZero88":
+        return load_AlphaZero_player88()
+
     print("Name Error!!")
 
 
@@ -107,26 +120,24 @@ def run(player1, player2):
 
 
 if __name__ == "__main__":
-    # for i in range(2):
-    #     t = run("MinMaxRefined", "MCTS")
-    #     time_board[0] += t[0]
-    #     time_board[1] += t[1]
-    # print(time_board)
 
-    mean_time = 0
-    # c.depth = d
-    methods = [
-        "MCTS2000",
-        "MCTS4000",
-        "MinMaxRefined-4",
-        "MinMaxRefined-5",
-    ]
-    # methods = ["MCTS2000", "MCTS4000"]
-    with torch.no_grad():
-        for i in range(len(methods)):
-            tp = c.total_games
-            ma = "AlphaZero"
-            mb = methods[i]
-            print(ma, mb)
-            t, count, discount = run(ma, mb)
-            c.total_games = tp
+    t = run("MinMaxRefined-4", "MCTS2000")
+    print(t)
+
+    # mean_time = 0
+    # # c.depth = d
+    # methods = [
+    #     "MCTS2000",
+    #     "MCTS4000",
+    #     "MinMaxRefined-4",
+    #     "MinMaxRefined-5",
+    # ]
+    # # methods = ["MCTS2000", "MCTS4000"]
+    # with torch.no_grad():
+    #     for i in range(len(methods)):
+    #         tp = c.total_games
+    #         ma = "AlphaZero"
+    #         mb = methods[i]
+    #         print(ma, mb)
+    #         t, count, discount = run(ma, mb)
+    #         c.total_games = tp

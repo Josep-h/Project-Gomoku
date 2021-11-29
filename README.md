@@ -37,6 +37,7 @@ python compare.py - 比较各种模型的性能
 \- MinMax - 带Alpha-Beta剪枝的MinMax搜索算法
 \- MinMaxRefined - 基于Zobrist置换表技术的MinMax搜索算法
 \- MCTS - 蒙特卡洛搜索方法及AlphaZero方法
+\- MuZero_simplified - MuZero方法
 \- utils - 辅助游戏运行的组件，例如棋盘、GUI等
 - play.py - 运行下棋的 GUI 界面
 - compare.py - 不同 AI 互相对局
